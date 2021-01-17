@@ -7,22 +7,20 @@ import process3
 import time
 import redis
 import analyze
+import sys
 
 
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 
-PROC1_COUNT = 1
-PROC2_COUNT = 4
-PROC3_COUNT = 4
-
 def main():
+    (PROC1_COUNT, PROC2_COUNT, PROC3_COUNT) = (int(sys.argv[i]) for i in range(1, 4))
     r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
     r.flushall()
     b = Barrier(PROC1_COUNT + PROC2_COUNT + PROC3_COUNT)
     end_1 = Value('b', False)
     processes_1 = [Process(target=process1.execute, 
-                              args=(REDIS_HOST, REDIS_PORT, b, end_1, 0.00001)) 
+                              args=(REDIS_HOST, REDIS_PORT, b, end_1, 0)) 
                         for _ in range(PROC1_COUNT)]
     end_2 = Value('b', False)
     processes_2 = [Process(target=process2.execute, 
@@ -54,17 +52,18 @@ def main():
         p.join()
     
     results = []
-    keys = r.keys('*')
-    for key in keys:
+    all_requests = 0
+    for key in r.keys('*'):
         if not key.decode().startswith('request-'):
             continue
+        all_requests += 1
         (time_1, time_2, time_3, is_shown) = r.hmget(key, 'time_1', 'time_2', 'time_3', 'shown')
         (time_1, time_2, time_3) = (float(time_1 or 0), float(time_2 or 0), float(time_3 or 0))
         if not is_shown is None:
             results.append((time_1, time_2, time_3, int(is_shown.decode())))
     results = sorted(results, key=lambda el: el[0])
     
-    analyze.show_results(results, len(keys))
+    analyze.show_results(results, all_requests)
 
 if __name__ == '__main__':
     main()

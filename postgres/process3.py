@@ -72,7 +72,8 @@ def execute(host, user, pwd, barrier, end):
             if chance < 0.75:
                 curs.execute('UPDATE requests SET type = 1, time_3 = NOW() WHERE request_id = %s;', (request_id, ))
             else:
-                curs.execute('UPDATE requests SET type = 2, time_3 = NOW() WHERE request_id = %s;', (request_id, ))
+                #curs.execute('UPDATE requests SET type = 2, time_3 = NOW() WHERE request_id = %s;', (request_id, ))
+                pass
             break
 
     print('Ending process type 3')

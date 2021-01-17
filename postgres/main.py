@@ -8,16 +8,12 @@ import time
 import analyze
 import psycopg2
 from datetime import timedelta
+import sys
 
 
 PGSQL_HOST = 'localhost'
 PGSQL_USER = 'postgres'
 PGSQL_PWD = 'docker'
-
-
-PROC1_COUNT = 1
-PROC2_COUNT = 1
-PROC3_COUNT = 1
 
 def setup_tables():
     conn = psycopg2.connect(host=PGSQL_HOST, user=PGSQL_USER, password=PGSQL_PWD, dbname='')
@@ -71,12 +67,12 @@ def fetch_results():
         ret[i] = list(ret[i])
         ret[i][0] = ret[i][0] / timedelta(microseconds=1000)
         ret[i][1] = ret[i][1] / timedelta(microseconds=1000)
-    print(ret)
     curs.execute('SELECT COUNT(*) FROM requests')
     allnum = curs.fetchone()[0]
     return ret, allnum
 
 def main():
+    (PROC1_COUNT, PROC2_COUNT, PROC3_COUNT) = (int(sys.argv[i]) for i in range(1, 4))
     setup_tables()
     b = Barrier(PROC1_COUNT + PROC2_COUNT + PROC3_COUNT)
     end_1 = Value('b', False)

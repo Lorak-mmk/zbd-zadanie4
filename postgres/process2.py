@@ -52,7 +52,7 @@ def execute(host, user, pwd, barrier, end):
         # If we didn't claim any request - wait for more notifications
         if len(res) != 1:
             conn.notifies.clear()
-            break
+            continue
         
         request_id = res[0][0]
         

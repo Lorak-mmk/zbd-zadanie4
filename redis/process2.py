@@ -6,7 +6,7 @@ countries = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua 
 
 script_process = '''
 redis.call('HSET', KEYS[1], 'country', ARGV[1], 'time_2', ARGV[2])
-redis.call('PUBLISH', KEYS[2], ARGV[3])
+redis.call('RPUSH', KEYS[2], ARGV[3])
 '''
 
 def execute(host, port, barrier, end):
@@ -19,10 +19,10 @@ def execute(host, port, barrier, end):
         res = r.blpop('queue_2', 0.1)
         if not res:
             continue
-        request_id = res[1]
+        request_id = res[1].decode()
         client_id = r.hget(request_id, 'client_id')
         country = countries[hash(client_id) % len(countries)]
-        process_data(keys=[request_id, '2_finished'], args=[country, time.time(), request_id])
+        process_data(keys=[request_id, 'finished-' + request_id], args=[country, time.time(), request_id])
     print('Ending process type 2')
         
         
